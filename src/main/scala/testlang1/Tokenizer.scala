@@ -1,3 +1,5 @@
+package testlang1; 
+
 object Tokenizer:
   // table of special characters
   val schars = Set(

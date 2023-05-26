@@ -1,0 +1,8 @@
+let PI = 3.1415
+let x = 99 + 1
+let f(x, y, z) = x + y^2 - z * PI
+let g(z) = f(x, 0, z)
+x = g(x)
+x = f(x, x, x)
+let y = 0
+return f($y, $(y+1), $y + 2) / -x + PI^-2 % ((100)) 

@@ -1,6 +1,6 @@
 // For more information on writing tests, see
 // https://scalameta.org/munit/docs/getting-started.html
- 
+package testlang1
 import TreeNode.*
 // import
 import munit.*
@@ -60,6 +60,24 @@ class ParseSuite extends FunSuite:
     val tokens = Tokenizer.tokenize("let f(x) = x return f(1)")
     val tree = Parse.parse(tokens)
     assertEquals(tree, Program(List(FunDef("f",List("x"),Ident("x")), Return(FunCall("f",List(Num(1)))))))
+  }
+  test("parse complex program 1"){
+    val tokens = Tokenizer.tokenize("let f(x) = 2*x let a = 5+f(3) return g(1) + 1")
+    val tree = Parse.parse(tokens)
+    assertEquals(tree, Program(List(
+      FunDef("f",List("x"),BinOp("*",Num(2),Ident("x"))),
+      VarDef("a",BinOp("+",Num(5),FunCall("f",List(Num(3))))),
+      Return(BinOp("+",FunCall("g",List(Num(1))),Num(1)))
+    )))
+  }
+  test("parse variable rep in funcall and vardef"){
+    val tokens = Tokenizer.tokenize("let f(x) = 2*x let x = 5+f(3) return x + 1")
+    val tree = Parse.parse(tokens)
+    assertEquals(tree, Program(List(
+      FunDef("f",List("x"),BinOp("*",Num(2),Ident("x"))),
+      VarDef("x",BinOp("+",Num(5),FunCall("f",List(Num(3))))),
+      Return(BinOp("+",Ident("x"),Num(1)))
+    )))
   }
 
 
