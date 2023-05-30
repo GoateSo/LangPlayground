@@ -9,7 +9,6 @@ class RegexMatcher(reg : String) {
   // if adding charSets: make digraph into Digraph[String] and change processing /  match accordingly
   val digraph = new Digraph[Int]()
   val stack = Stack[Int]()
-
   
   // parse using stack like shunting yard
   // keep track of index
