@@ -1,4 +1,4 @@
-package testlang1
+package testparser1
 
 import munit.FunSuite
 class EvalSuite extends FunSuite:

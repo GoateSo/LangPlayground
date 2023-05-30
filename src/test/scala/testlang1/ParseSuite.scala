@@ -1,6 +1,6 @@
 // For more information on writing tests, see
 // https://scalameta.org/munit/docs/getting-started.html
-package testlang1
+package testparser1
 import TreeNode.*
 // import
 import munit.*

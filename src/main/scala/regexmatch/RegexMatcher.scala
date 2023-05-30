@@ -8,8 +8,6 @@ class RegexMatcher(reg : String) {
   // maintain digraph of indices, with edges representing epsilon transitions
   // if adding charSets: make digraph into Digraph[String] and change processing /  match accordingly
   val digraph = new Digraph[Int]()
-
-
   val stack = Stack[Int]()
 
   
