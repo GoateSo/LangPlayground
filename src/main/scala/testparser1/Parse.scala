@@ -1,4 +1,4 @@
-package testlang1
+package testparser1
 // make a recursive descent expression parser
 /*
 grammar:
@@ -38,6 +38,8 @@ object Parse {
   import Tokenizer.Token
   import Tokenizer.Token.*
 
+  private class ParseError(msg: String) extends Exception(msg)
+  private inline def parseErr(msg: String) = throw new ParseError(msg)
   // parse argument list in function call, expects that opening parn is already consumed
   def parseArgs(cur: List[Token]): (List[TreeNode], List[Token]) =
     val (arg, rest) = expr(cur)
@@ -51,7 +53,7 @@ object Parse {
         )
 
   def factor(cur: List[Token]): (TreeNode, List[Token]) = cur match
-    case Nil => throw new Exception("unexpected end of input")
+    case Nil => parseErr("unexpected end of input")
     // function call
     case Ident(fname) :: Op("(") :: next =>
       val (args, rest) = parseArgs(next)
@@ -65,8 +67,8 @@ object Parse {
       val (expr, rest) = Parse.expr(next)
       rest match
         case Op(")") :: rest2 => (expr, rest2)
-        case _ => throw Exception("expected ')' to close '(' in expression")
-    case _ => throw Exception(s"unexpected tokens $cur")
+        case _ => parseErr("expected ')' to close '(' in expression")
+    case _ => parseErr(s"unexpected tokens $cur")
 
   def power(cur: List[Token]): (TreeNode, List[Token]) =
     Parse.factor(cur) match
@@ -76,7 +78,7 @@ object Parse {
       case other => other
 
   def unop(cur: List[Token]): (TreeNode, List[Token]) = cur match
-    case Nil => throw new Exception("unexpected end of input")
+    case Nil => parseErr("unexpected end of input")
     case Op(c) :: next if c == "-" || c == "$" =>
       val (rhs, rest) = Parse.unop(next)
       (TreeNode.UnOp(c, rhs), rest)
@@ -103,7 +105,7 @@ object Parse {
         val (args, rest2) = parseParams(next)
         (n :: args, rest2)
       case _ =>
-        throw Exception("expected ')' to close '(' in function call")
+        parseErr("expected ')' to close '(' in function call")
 
   def parseStmt(cur: List[Token]): (TreeNode, List[Token]) = cur match
     case Ident("let") :: Ident(n) :: next =>
@@ -116,25 +118,19 @@ object Parse {
         case Op("(") :: rest =>
           val (params, rem) = parseParams(rest)
           if (rem.head != Op("=")) then
-            throw Exception(
-              "bad definition: expected '=' after function params"
-            )
+            parseErr("bad definition: expected '=' after function params")
           val (exp, rem2) = expr(rem.tail)
-          // println(s"expression: $exp remainder: $rem2")
           (TreeNode.FunDef(n, params, exp), rem2)
         case _ =>
-          throw Exception(
-            "bad definition: expected '=' or '(' after 'let <name>'"
-          )
+          parseErr("bad definition: expected '=' or '(' after 'let <name>'")
     // function call
     case Ident(n) :: Op("(") :: next =>
       val (args, rest) = parseArgs(next)
       (TreeNode.FunCall(n, args), rest)
     case Ident(n) :: Op("=") :: next =>
-      println("varmut")
       val (exp, rest) = expr(next)
       (TreeNode.VarMut(n, exp), rest)
-    case _ => throw Exception(s"unexpected tokens $cur")
+    case _ => parseErr(s"unexpected tokens $cur")
 
   def parseStmts(cur: List[Token]): (List[TreeNode], List[Token]) =
     cur match
@@ -152,7 +148,7 @@ object Parse {
   def parse(tokens: List[Token]): TreeNode =
     val (tree, rest) = parseStmts(tokens)
     if rest.isEmpty then TreeNode.Program(tree)
-    else throw new Exception("unexpected tokens after end of program")
+    else parseErr("unexpected tokens after end of program")
 
   def apply(tokens: List[Token]): TreeNode = parse(tokens)
 }

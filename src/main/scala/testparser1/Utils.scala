@@ -1,4 +1,4 @@
-package testlang1
+package testparser1
 
 import scala.io.Source
 
@@ -8,16 +8,16 @@ object Utils:
   enum InputType:
     case FileName, Prog
 
-  def run(itype: InputType, input: String, numInputs : List[Double] = List.empty): Double =
+  def run(itype: InputType, input: String, numInputs : List[Double] = List.empty): Unit =
     val inputStr = itype match
       case InputType.FileName => Source.fromFile(input).mkString("")
       case InputType.Prog     => input
     val tokens = Tokenizer.tokenize(inputStr)
     val ast = Parse.parse(tokens)
-    eval(ast, Map(
+    println(s"""result: ${eval(ast, Map(
       "PI" -> Num(Math.PI), 
       "E" -> Num(Math.E),
-    ), numInputs)._1
+    ), numInputs)._1}""")
 
   val BinopMap = Map[String, (Double, Double) => Double](
     "+" -> (_ + _),
