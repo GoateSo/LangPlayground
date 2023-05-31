@@ -13,7 +13,7 @@ object Utils:
       case InputType.FileName => Source.fromFile(input).mkString("")
       case InputType.Prog     => input
     val tokens = Tokenizer.tokenize(inputStr)
-    val ast = Parse.parse(tokens)
+    val ast = Parser.parse(tokens)
     println(s"""result: ${eval(ast, Map(
       "PI" -> Num(Math.PI), 
       "E" -> Num(Math.E),

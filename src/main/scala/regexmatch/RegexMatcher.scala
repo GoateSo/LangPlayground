@@ -35,9 +35,6 @@ class RegexMatcher(reg : String) {
     if reg(i) == '(' || reg(i) == '*' || reg(i) == ')' then
       digraph += (i, i + 1)
 
-  digraph.disp(i => (if i == reg.length then "end" else reg(i).toString, i))
-
-
   // checks if a string wholly matches the regex
   def matches(input : String) : Boolean = 
     // initial set of vertices reachable from start
@@ -49,7 +46,7 @@ class RegexMatcher(reg : String) {
         // char matches or is wildcard, advancing to next index (non epsilon) works as path
         if v < reg.length && (reg(v) == input(i) || reg(v) == '.') then
           matchSet += v + 1
-      visSet = digraph.dfs(matchSet)
+      visSet = digraph.dfs(matchSet.toList : _*)
     // check if end is reachable
     visSet.contains(reg.length)
 }

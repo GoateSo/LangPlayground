@@ -34,7 +34,7 @@ enum TreeNode:
   case Return(expr: TreeNode)
   case Program(stmts: List[TreeNode])
 
-object Parse {
+object Parser {
   import Tokenizer.Token
   import Tokenizer.Token.*
 
@@ -44,6 +44,9 @@ object Parse {
   def parseArgs(cur: List[Token]): (List[TreeNode], List[Token]) =
     val (arg, rest) = expr(cur)
     rest match
+      // bad list intermediate error
+      case Op(",") :: Op(x) :: rest2 if x == "," || x == ")" =>
+        parseErr("expected expression after ','")
       case Op(",") :: next =>
         val (args, rest2) = parseArgs(next); (arg :: args, rest2)
       case Op(")") :: rest => (List(arg), rest)
@@ -64,37 +67,37 @@ object Parse {
     case Num(value) :: next => (TreeNode.Num(value), next)
     // parenthesized expression
     case Op("(") :: next =>
-      val (expr, rest) = Parse.expr(next)
+      val (expr, rest) = Parser.expr(next)
       rest match
         case Op(")") :: rest2 => (expr, rest2)
         case _ => parseErr("expected ')' to close '(' in expression")
     case _ => parseErr(s"unexpected tokens $cur")
 
   def power(cur: List[Token]): (TreeNode, List[Token]) =
-    Parse.factor(cur) match
+    Parser.factor(cur) match
       case (lhs, Op("^") :: next) =>
-        val (rhs, rest2) = Parse.unop(next)
+        val (rhs, rest2) = Parser.unop(next)
         (TreeNode.BinOp("^", lhs, rhs), rest2)
       case other => other
 
   def unop(cur: List[Token]): (TreeNode, List[Token]) = cur match
     case Nil => parseErr("unexpected end of input")
     case Op(c) :: next if c == "-" || c == "$" =>
-      val (rhs, rest) = Parse.unop(next)
+      val (rhs, rest) = Parser.unop(next)
       (TreeNode.UnOp(c, rhs), rest)
-    case _ => Parse.power(cur)
+    case _ => Parser.power(cur)
 
   def term(cur: List[Token]): (TreeNode, List[Token]) =
-    Parse.unop(cur) match
+    Parser.unop(cur) match
       case (lhs, Op(op) :: next) if op == "*" || op == "/" || op == "%" =>
-        val (rhs, rest2) = Parse.term(next)
+        val (rhs, rest2) = Parser.term(next)
         (TreeNode.BinOp(op, lhs, rhs), rest2)
       case other => other
 
   def expr(cur: List[Token]): (TreeNode, List[Token]) =
-    Parse.term(cur) match
+    Parser.term(cur) match
       case (lhs, Op(op) :: next) if op == "+" || op == "-" =>
-        val (rhs, rest2) = Parse.expr(next)
+        val (rhs, rest2) = Parser.expr(next)
         (TreeNode.BinOp(op, lhs, rhs), rest2)
       case other => other
 
@@ -149,6 +152,4 @@ object Parse {
     val (tree, rest) = parseStmts(tokens)
     if rest.isEmpty then TreeNode.Program(tree)
     else parseErr("unexpected tokens after end of program")
-
-  def apply(tokens: List[Token]): TreeNode = parse(tokens)
 }

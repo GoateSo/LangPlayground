@@ -9,26 +9,24 @@ class Digraph[T]:
   // adds edge to graph
   def += (pair : (T, T)) : Unit =
     val (from, to) = pair
-    adjList(from) = to :: adjList.getOrElse(from, List.empty)
+    val rest = apply(from)
+    adjList(from) = to :: rest
   
   // gets adjacent nodes at given edge
   def apply(from : T) : List[T] = adjList.getOrElse(from, List.empty)
 
-  def disp[U](f : T => U = identity) : Unit = 
-    adjList.foreach { case (from, tos) =>
-      println(s"${f(from)} -> [${tos.map(f).mkString(", ")}]")
-    }
-
-  def dfs(starts : IterableOnce[T]) : HashSet[T] = 
+  def dfs(starts : T*) : HashSet[T] = 
     val visited = HashSet[T]()
-    def dfsHelper(froms : IterableOnce[T]) : Unit = 
+    def dfsHelper(froms : T*) : Unit = 
       for from <- froms do
         visited += from
-        for to <- this(from) do
-          if !visited.contains(to) then dfsHelper(List(to))
-    dfsHelper(starts)
-    visited
+        val neighbors = apply(from).filterNot(visited.contains)
+        for to <- neighbors do
+          if !visited.contains(to) then dfsHelper(to)
+    dfsHelper(starts  : _*)
+    visited 
 
-  def dfs(start : T) : HashSet[T] = 
-    dfs(List(start))  
-
+  // def disp[U](f : T => U) : Unit = 
+  //   adjList.foreach { case (from, tos) =>
+  //     println(s"${f(from)} -> [${tos.map(f).mkString(", ")}]")
+  //   }
