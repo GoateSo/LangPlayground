@@ -84,9 +84,12 @@ class EvalSuite extends FunSuite:
   }
   test("catch error with unknown function use") {
     val ptree = Parser.parse(Tokenizer.tokenize("return f(1)"))
-    assertEquals(intercept[Exception] {
-      Utils.eval(ptree, Map.empty, List.empty)
-    }.getMessage(), "unknown function f")
+    assertEquals(
+      intercept[Exception] {
+        Utils.eval(ptree, Map.empty, List.empty)
+      }.getMessage(),
+      "unknown function f"
+    )
   }
   test("catch error with unknown param use") {
     val ptree = Parser.parse(Tokenizer.tokenize("let f(x) = 1 return f(y)"))
@@ -94,4 +97,3 @@ class EvalSuite extends FunSuite:
       Utils.eval(ptree, Map.empty, List.empty)
     }
   }
-

@@ -8,16 +8,24 @@ object Utils:
   enum InputType:
     case FileName, Prog
 
-  def run(itype: InputType, input: String, numInputs : List[Double] = List.empty): Unit =
+  def run(
+      itype: InputType,
+      input: String,
+      numInputs: List[Double] = List.empty
+  ): Unit =
     val inputStr = itype match
       case InputType.FileName => Source.fromFile(input).mkString("")
       case InputType.Prog     => input
     val tokens = Tokenizer.tokenize(inputStr)
     val ast = Parser.parse(tokens)
-    println(s"""result: ${eval(ast, Map(
-      "PI" -> Num(Math.PI), 
-      "E" -> Num(Math.E),
-    ), numInputs)._1}""")
+    println(s"""result: ${eval(
+        ast,
+        Map(
+          "PI" -> Num(Math.PI),
+          "E" -> Num(Math.E)
+        ),
+        numInputs
+      )._1}""")
 
   val BinopMap = Map[String, (Double, Double) => Double](
     "+" -> (_ + _),
@@ -38,13 +46,13 @@ object Utils:
         s"let $name(${args.mkString(", ")}) = ${convert(body)}"
       case FunCall(name, args) =>
         s"$name(${args.map(convert).mkString(", ")})"
-      case Num(value)     => value.toString
-      case Ident(name)    => name
-      case Return(value)  => s"return ${convert(value)}"
-      case Program(stmts) => stmts.map(convert).mkString("\n")
+      case Num(value)          => value.toString
+      case Ident(name)         => name
+      case Return(value)       => s"return ${convert(value)}"
+      case Program(stmts)      => stmts.map(convert).mkString("\n")
       case VarMut(name, value) => s"$name = ${convert(value)}"
 
-  def dispAST(node: TreeNode, depth: Int = 0): Unit = 
+  def dispAST(node: TreeNode, depth: Int = 0): Unit =
     print(s"${"| " * depth}")
     node match
       case BinOp(op, left, right) =>
@@ -78,30 +86,37 @@ object Utils:
         stmts.foreach { stmt =>
           dispAST(stmt, depth + 1)
         }
-      case VarMut(name, value) => 
+      case VarMut(name, value) =>
         println(s"VarMut($name)")
         dispAST(value, depth + 1)
 
   def eval(
-    node: TreeNode,
-    env: Map[String, TreeNode],
-    inputs: List[Double]
+      node: TreeNode,
+      env: Map[String, TreeNode],
+      inputs: List[Double]
   ): (Double, Map[String, TreeNode]) =
     import TreeNode.*
     node match
-      case node @ VarDef(name, value)      => (-1, env + (name -> Num(eval(value, env, inputs)._1)))
+      case node @ VarDef(name, value) =>
+        (-1, env + (name -> Num(eval(value, env, inputs)._1)))
       case node @ FunDef(name, args, body) => (-1, env + (name -> node))
       case VarMut(name, value) =>
         env.get(name) match
-          case Some(x) => (-1, env + (name -> Num(eval(value, env, inputs)._1))) // override value
-          case None    => throw Exception(s"cannot assign to unknown variable $name")
+          case Some(x) =>
+            (
+              -1,
+              env + (name -> Num(eval(value, env, inputs)._1))
+            ) // override value
+          case None =>
+            throw Exception(s"cannot assign to unknown variable $name")
       case Num(value)   => (value, env)
       case Return(expr) => eval(expr, env, inputs)
       case FunCall(name, args) =>
         env.get(name) match
           // run function adding everything to the environment, remove everything after
           case Some(FunDef(_, params, body)) =>
-            var xs = env ++ params.zip(args.map(arg => Num(eval(arg, env, inputs)._1)))
+            var xs =
+              env ++ params.zip(args.map(arg => Num(eval(arg, env, inputs)._1)))
             (eval(body, xs, inputs)._1, env)
           case None =>
             name match
@@ -116,8 +131,8 @@ object Utils:
             )
       case Ident(name) =>
         env.get(name) match
-          case Some(x)                   => eval(x, env, inputs)
-          case _ => throw Exception(s"unknown variable $name")
+          case Some(x) => eval(x, env, inputs)
+          case _       => throw Exception(s"unknown variable $name")
       case BinOp(op, left, right) =>
         val l = eval(left, env, inputs)._1
         val r = eval(right, env, inputs)._1

@@ -1,4 +1,4 @@
-package testparser1; 
+package testparser1;
 
 object Tokenizer:
   // table of special characters
