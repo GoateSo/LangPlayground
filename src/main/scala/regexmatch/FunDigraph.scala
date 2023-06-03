@@ -4,12 +4,12 @@ class FunDigraph[T](private val repr: Map[T, List[T]]):
 
   def apply(from: T) = repr.getOrElse(from, List.empty)
 
-  def + (pair: (T, T)): FunDigraph[T] =
+  def +(pair: (T, T)): FunDigraph[T] =
     val (from, to) = pair
     val rest = apply(from)
     new FunDigraph(repr + (from -> (to :: rest)))
-  
-  def ++(entries: (T,T)*): FunDigraph[T] = 
+
+  def ++(entries: Seq[(T, T)]): FunDigraph[T] =
     entries.foldLeft(this)(_ + _)
 
   def dfs(starts: T*): Set[T] =

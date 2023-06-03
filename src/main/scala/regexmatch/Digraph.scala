@@ -25,7 +25,6 @@ class Digraph[T]:
     dfsHelper(starts: _*)
     visited
 
-  def disp[U](f : T => U) : Unit =
-    adjList.foreach { case (from, tos) =>
-      println(s"${f(from)} -> [${tos.map(f).mkString(", ")}]")
-    }
+  override def toString(): String = adjList
+    .map { (from, tos) => s"${from} -> [${tos.mkString(", ")}]" }
+    .mkString("\n")

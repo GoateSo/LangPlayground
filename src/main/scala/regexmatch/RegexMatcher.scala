@@ -1,10 +1,11 @@
 package regexmatch
 import scala.util.boundary.*
 // to add:
-// ?     : 0 or 1 of something
-// +     : 1 or more of something
-// [abc] : char set
-// [a-z] : charset (range)
+// ?           : 0 or 1 of something (done)
+// +           : 1 or more of something (done)
+// (a | b | c) : multi alternation (done)
+// [abc]       : char set
+// [a-z]       : charset (range)
 
 import scala.collection.mutable.{Stack, HashSet, HashMap}
 import scala.util.boundary
@@ -28,12 +29,15 @@ class RegexMatcher(reg: String) {
     // if its right parenm, check if top is alt, and if so find the next (real) left paren and add to digraph
     // assumption: no statement in form (a|b|c|...)
     else if reg(i) == ')' then
-      val or = stack.pop()
-      if reg(or) == '|' then
-        lp = stack.pop()
-        digraph += (lp, or + 1)
+      assert(stack.nonEmpty, "unmatched parens in regex")
+      val xs = scala.collection.mutable.ListBuffer[Int]()
+      while !stack.isEmpty && reg(stack.top) != '(' do
+        xs += stack.pop
+      assert(reg(stack.top) == '(')
+      lp = stack.pop
+      for or <- xs do 
+        digraph += (lp, or+1)
         digraph += (or, i)
-      else lp = or
 
     // step 2 check for kleene star with a lookahead and add a self loop
     if (i < reg.length - 1 && reg(i + 1) == '*') then
@@ -49,6 +53,8 @@ class RegexMatcher(reg: String) {
     if reg(i) == '(' || reg(i) == '*' || reg(i) == ')' 
     || reg(i) == '?' || reg(i) == '+'
     then digraph += (i, i + 1)
+
+  val x = digraph.toString()
 
   // checks if a string wholly matches the regular expression
   def matches(input : String, partial : Boolean = false) : Boolean =
