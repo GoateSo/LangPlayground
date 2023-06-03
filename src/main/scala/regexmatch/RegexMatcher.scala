@@ -40,13 +40,14 @@ class RegexMatcher(reg: String) {
       digraph += (i + 1, lp)
       digraph += (lp, i + 1)
     // step 2.5 check for ? and add epsilon transition forward only
-    if (i < reg.length - 1 && reg(i + 1) == '?') then digraph += (lp, i + 1)
+    if (i < reg.length - 1 && reg(i + 1) == '?') then 
+      digraph += (lp, i + 1)
     // step 2.75 check for + and add epsilon transition backward only
-    if (i < reg.length - 1 && reg(i + 1) == '+') then digraph += (i + 1, lp)
+    if (i < reg.length - 1 && reg(i + 1) == '+') then 
+      digraph += (i + 1, lp)
     // step 3: add forward edge to next char for special chars
-    if reg(i) == '(' || reg(i) == '*' || reg(i) == ')' || reg(i) == '?' || reg(
-        i
-      ) == '+'
+    if reg(i) == '(' || reg(i) == '*' || reg(i) == ')' 
+    || reg(i) == '?' || reg(i) == '+'
     then digraph += (i, i + 1)
 
   // checks if a string wholly matches the regular expression
@@ -63,19 +64,6 @@ class RegexMatcher(reg: String) {
         if partial && visSet.contains(reg.length) then boundary.break(true)
       // check if end is reachable
       visSet.contains(reg.length)
-      
-  // // functional implementation of matches -- if digraph and dfs can be implemented w/ immutable set, use hti
-  // def matches(input: String, partial: Boolean = false): Boolean =
-  //   def matchHelper(i: Int, vset: Set[Int]): Boolean =
-  //     if i == input.length then vset.contains(reg.length)
-  //     else if partial && vset.contains(reg.length) then true
-  //     else
-  //       val next = vset.filter(v =>
-  //         v < reg.length && (reg(v) == input(i) || reg(v) == '.')
-  //       )
-  //       if next.isEmpty then false
-  //       else matchHelper(i + 1, digraph.dfs(next.toList.map(_ + 1): _*).toSet)
-  //   matchHelper(0, digraph.dfs(0).toSet)
 
   // check if a substring of the input matches the regular expression
   def finds(input: String): Boolean =
