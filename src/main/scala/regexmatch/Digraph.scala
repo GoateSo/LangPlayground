@@ -6,13 +6,11 @@ import scala.collection.mutable.HashSet
 class Digraph[T]:
   private var adjList = HashMap[T, List[T]]()
 
-  // adds edge to graph
   def +=(pair: (T, T)): Unit =
     val (from, to) = pair
     val rest = apply(from)
     adjList(from) = to :: rest
 
-  // gets adjacent nodes at given edge
   def apply(from: T): List[T] = adjList.getOrElse(from, List.empty)
 
   def dfs(starts: T*): HashSet[T] =

@@ -4,6 +4,8 @@ import scala.util.boundary.*
 // ?           : 0 or 1 of something (done)
 // +           : 1 or more of something (done)
 // (a | b | c) : multi alternation (done)
+// <p>{n}      : n of something
+// <p>{n-m}    : n to m of something
 // [abc]       : char set
 // [a-z]       : charset (range)
 
@@ -53,7 +55,7 @@ class RegexMatcher(reg: String) {
     if reg(i) == '(' || reg(i) == '*' || reg(i) == ')' 
     || reg(i) == '?' || reg(i) == '+'
     then digraph += (i, i + 1)
-
+  assert(stack.isEmpty, "unmatched parens in regex")
   val x = digraph.toString()
 
   // checks if a string wholly matches the regular expression
@@ -65,9 +67,11 @@ class RegexMatcher(reg: String) {
       for i <- 0 until input.length do
         visSet.filterInPlace(v => v < reg.length && (reg(v) == input(i) || reg(v) == '.'))
         visSet = digraph.dfs(visSet.toList.map(_ + 1) : _*)
-        if visSet.isEmpty then boundary.break(false)
+        if visSet.isEmpty then 
+          boundary.break(false)
         // if partial match is allowed, check if end is reachable
-        if partial && visSet.contains(reg.length) then boundary.break(true)
+        if partial && visSet.contains(reg.length) then 
+          boundary.break(true)
       // check if end is reachable
       visSet.contains(reg.length)
 

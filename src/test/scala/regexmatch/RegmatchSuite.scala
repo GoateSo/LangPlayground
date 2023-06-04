@@ -237,3 +237,12 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.finds("xxacxdb"), false)
     assertEquals(matcher.finds("xxadccdbbbbcxxadccdbbbbcxx"), true)
   }
+
+  test("error on unmatched param"){
+    intercept[AssertionError] {
+      val matcher = new RegexMatcher("(ab")
+    }
+    intercept[AssertionError] {
+      val matcher = new RegexMatcher("ab)")
+    }
+  }
