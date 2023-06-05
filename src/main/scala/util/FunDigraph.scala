@@ -1,4 +1,4 @@
-package regexmatch
+package util
 
 class FunDigraph[T](private val repr: Map[T, List[T]]):
 

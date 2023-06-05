@@ -239,10 +239,10 @@ class RegmatchSuite extends FunSuite:
   }
 
   test("error on unmatched param"){
-    intercept[AssertionError] {
+    intercept[Exception] {
       val matcher = new RegexMatcher("(ab")
     }
-    intercept[AssertionError] {
+    intercept[Exception] {
       val matcher = new RegexMatcher("ab)")
     }
   }

@@ -1,5 +1,4 @@
 package regexmatch
-import scala.util.boundary.*
 // to add:
 // ?           : 0 or 1 of something (done)
 // +           : 1 or more of something (done)
@@ -8,14 +7,18 @@ import scala.util.boundary.*
 // <p>{n-m}    : n to m of something
 // [abc]       : char set
 // [a-z]       : charset (range)
-
 import scala.collection.mutable.{Stack, HashSet, HashMap}
 import scala.util.boundary
+import scala.util.boundary.break
+import util.Digraph
+
 // implements a regex matching function for just the operations of
 // concatenation (ab), alternation (a|b), and Kleene star (a*), and the groupings ((a)) for precedence.
 // creates a digraph from the regex and then uses a depth first search to find a match
 // implementation from Algorithsm 4th edition
 class RegexMatcher(reg: String) {
+  private def assert(b: Boolean, msg: String = "bad"): Unit =
+    if !b then throw Exception(msg)
   // maintain digraph of indices, with edges representing epsilon transitions
   // if adding charSets: make digraph into Digraph[String] and change processing /  match accordingly
   val digraph = new Digraph[Int]()
