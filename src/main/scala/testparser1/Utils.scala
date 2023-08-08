@@ -35,6 +35,25 @@ object Utils:
     "%" -> (_ % _),
     "^" -> math.pow
   )
+  def optimize(node: TreeNode): TreeNode = node match
+    case BinOp(op, left, right) =>
+      val l = optimize(left)
+      val r = optimize(right)
+      (l, r) match
+        case (Num(lv), Num(rv)) => Num(BinopMap(op)(lv, rv))
+        case _                  => BinOp(op, l, r)
+    case UnOp(op, right) =>
+      optimize(right) match
+        case Num(rv) if op == "-" => Num(-rv)
+        case _                    => UnOp(op, right)
+    case VarDef(name, value)      => VarDef(name, optimize(value))
+    case VarMut(name, value)      => VarMut(name, optimize(value))
+    case FunDef(name, args, body) => FunDef(name, args, optimize(body))
+    case FunCall(name, args)      => FunCall(name, args.map(optimize))
+    case Num(value)               => Num(value)
+    case Ident(name)              => Ident(name)
+    case Return(expr)             => Return(optimize(expr))
+    case Program(stmts)           => Program(stmts.map(optimize))
 
   def convert(node: TreeNode): String =
     node match

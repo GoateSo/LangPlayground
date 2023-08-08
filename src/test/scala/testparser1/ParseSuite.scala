@@ -16,6 +16,12 @@ class ParseSuite extends FunSuite:
     tokens = Tokenizer.tokenize("1 + 1 * 2")
     assertEquals(tokens, List(Num(1), Op("+"), Num(1), Op("*"), Num(2)))
   }
+  test("tokenize numeric fail") {
+    val msg = intercept[Exception] {
+      Tokenizer.tokenize("1.2.3")
+    }.getMessage()
+    assert(msg.contains("Invalid number, too many decimal points"))
+  }
   test("tokenize stmt") {
     import Tokenizer.Token.*
     val tokens = Tokenizer.tokenize("let x = (1 * 3) ^ $1")

@@ -46,7 +46,11 @@ object Tokenizer:
           s"Invalid character after ident state: ($c)"
         ) // TODO - different from lua impl, maybe make match?
     case Num =>
-      if c.isDigit || c == '.' then (Num, cval + c, "")
+      if c.isDigit then (Num, cval + c, "")
+      else if c == '.' then
+        if cval.contains('.')
+        then throw Exception("Invalid number, too many decimal points")
+        else (Num, cval + c, "")
       else if c.isWhitespace then (Empty, s"$c", cval)
       else if isSpecial(c) then (Op, s"$c", cval)
       else if c.isLetter || c == '_' then (Ident, s"$c", cval)
