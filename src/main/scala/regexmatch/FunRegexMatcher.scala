@@ -1,14 +1,31 @@
 package regexmatch
+
+// to add:
+// ?           : 0 or 1 of something (done)
+// +           : 1 or more of something (done)
+// (a | b | c) : multi alternation (done)
+// <p>{n}      : n of something -- could be implemented as conditional transitions (provide max/min, while * provides max/min = inf/0 for instance)
+// <p>{n-m}    : n to m of something
+// [abc]       : char set (done)
+// [a-z]       : charset (range) (done)
+
 import util.FunDigraph
 
+enum CharType:
+  case Literal(x: Char)
+  case Range(x: Char, y: Char)
+  case Negated(body: List[CharType])
+
 class FunRegexMatcher(reg: String):
+  import CharType._
+
   private def assert(b: Boolean, msg: String = "bad"): Unit =
     if !b then throw Exception(msg)
 
   // si : search index     | is ind of ] if chrset
   // bi : backtrack index  | is ind of [ in chrset and = si otherwise
   // lp : last paren index
-  private def procGlob(si: Int, bi : Int, lp: Int): List[(Int, Int)] =
+  private def procGlob(si: Int, bi: Int, lp: Int): List[(Int, Int)] =
     if si >= reg.length - 1 then Nil
     else
       // println((si, bi))
@@ -19,19 +36,13 @@ class FunRegexMatcher(reg: String):
         case '?' => List((lp, si + 1)) // epsilon transition forward
         case _   => Nil
 
-  enum CharType:
-    case Literal(x: Char)
-    case Range(x: Char, y: Char)
-    case Negated(body: List[CharType])
-
-  import CharType._
-
-  private def parseLit(chrs: List[Char]): (Option[Literal], List[Char]) = chrs match
-    case Nil => (None, Nil)
-    case '\\' :: Nil => throw Exception("bad?")
-    case '\\' :: c :: cs => (Some(Literal(c)), cs)
-    case c :: cs if c == '-' || c == ']' => (None, chrs)
-    case c :: cs => (Some(Literal(c)), cs)
+  private def parseLit(chrs: List[Char]): (Option[Literal], List[Char]) =
+    chrs match
+      case Nil                             => (None, Nil)
+      case '\\' :: Nil                     => throw Exception("bad?")
+      case '\\' :: c :: cs                 => (Some(Literal(c)), cs)
+      case c :: cs if c == '-' || c == ']' => (None, chrs)
+      case c :: cs                         => (Some(Literal(c)), cs)
 
   private def parseCharSet(i: Int, e: Int): List[CharType] =
     val chrs = reg.substring(i, e).toList
@@ -69,6 +80,8 @@ class FunRegexMatcher(reg: String):
       case Range(x, y) => x <= chr && chr <= y
       case Negated(xs) => !chrMatch(chr, xs)
     }
+
+  // todo possibly wrap with `State`
   private def process(
       i: Int,
       graph: FunDigraph[Int],
@@ -84,7 +97,11 @@ class FunRegexMatcher(reg: String):
         else if c == ')' then
           assert(stk.exists(reg(_) == '('), "unmatched parens in regex")
           val (ors, lp :: rest) = stk.span(reg(_) != '('): @unchecked
-          (lp, graph ++ ors.flatMap(or => List((lp, or + 1), (or, i))), rest)
+          (
+            lp,
+            graph ++ ors.flatMap(or => List((lp, or + 1), (or, i))),
+            rest
+          )
         else (i, graph, stk)
       val (nind, nchrsets) = if c == '[' then
         val j = reg.indexOf(']', i)
