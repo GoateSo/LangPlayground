@@ -1,5 +1,9 @@
 package testparser1
 
+import java.nio.ByteBuffer
+import Instruction.*
+import Codegen.*
+import scala.collection.immutable.Queue
 /*
 -- Notations:
 
@@ -58,8 +62,59 @@ opcodes:
   CLOSURE=36
  */
 object BytecodeWriter:
-  import Instruction.*
-  import Codegen.*
+  // each instruction corresponds to 4 byte segment in bytecode
+
+  // iABC format
+  // CCCCCCCCCBBBBBBBBBAAAAAAAAOOOOOO
+  // 9 bit- 9 bit- 8 bit- 6 bit
+  inline def toInst(inline op: Int, a: Int, b: Int, c: Int): Int =
+    (op & 0x3f) | ((a & 0xff) << 6) | ((b & 0x1ff) << 14) | ((c & 0x1ff) << 23)
+  // iABx format
+  // BBBBBBBBBBBBBBBBBAAAAAAAAOOOOOO
+  // 18 bit- 8 bit- 6 bit
+  inline def toInst(inline op: Int, a: Int, bx: Int): Int =
+    (op & 0x3f) | ((a & 0xff) << 6) | ((bx & 0x3ffff) << 14)
+
+  inline def toOpCode(ist: Instruction): Int = ist match
+    case ADD(a, b, c)   => toInst(12, a, b, c)
+    case SUB(a, b, c)   => toInst(13, a, b, c)
+    case MUL(a, b, c)   => toInst(14, a, b, c)
+    case DIV(a, b, c)   => toInst(15, a, b, c)
+    case MOD(a, b, c)   => toInst(16, a, b, c)
+    case POW(a, b, c)   => toInst(17, a, b, c)
+    case UNM(a, b)      => toInst(18, a, b, 0)
+    case INPUT(a, b)    => toInst(19, a, b, 0)
+    case RETURN(a)      => toInst(30, a, 0, 0)
+    case CALL(a, b)     => toInst(28, a, b, 0)
+    case CLOSURE(a, bx) => toInst(36, a, bx)
+    case GETUPVAL(a, b) => toInst(4, a, b, 0)
+    case LOADK(a, bx)   => toInst(1, a, bx)
+    case MOVE(a, b)     => toInst(0, a, b, 0)
+
+  inline def constBytes(c: Double): Array[Byte] =
+    ByteBuffer
+      .allocate(8)
+      .putDouble(c)
+      .array()
+      .reverse // maybe not needed?
+
+  extension (buf: Queue[Byte])
+    def writeByte(b: Byte): Queue[Byte] = buf.enqueue(b)
+    // little write int:
+    def writeInt(i: Int): Queue[Byte] =
+      buf.enqueueAll(
+        List(
+          (i & 0xff).toByte,
+          ((i >> 8) & 0xff).toByte,
+          ((i >> 16) & 0xff).toByte,
+          ((i >> 24) & 0xff).toByte
+        ) // .reverse?
+      )
+    def writeInstrs(xs: List[Instruction]): Queue[Byte] =
+      xs.foldLeft(buf)((buf, x) => buf.writeInt(toOpCode(x)))
+
+    def writeConsts(xs: List[Double]): Queue[Byte] =
+      xs.foldLeft(buf)((buf, x) => buf.enqueueAll(constBytes(x)))
   // Chunk as top level function block
   // Int: line defined
   // Int: last line defined
@@ -72,7 +127,7 @@ object BytecodeWriter:
   // List of locals
   // List of upvalues
   // TODO: record upvalues with level and register index
-  def toByteStream(program: Chunk, line: Int = 0): List[Byte] =
+  def toByteStream(program: Chunk): Queue[Byte] =
     val Chunk(
       instructions,
       constTable,
@@ -82,8 +137,31 @@ object BytecodeWriter:
       paramCnt,
       _
     ) = program
-    val lastLine = line + instructions.size
-    val upvalCount = upvalTable.size.toByte
-    val paramCount = paramCnt.toByte
-    ???
+    // val lastLine = line + instructions.size
+    println(constTable.toList.sortBy(_._2)(Ordering[Int].reverse).map(_._1))
+    val list = Queue
+      .empty[Byte] // preamble
+      // .writeInt(line)
+      // .writeInt(lastLine)
+      .writeByte(upvalTable.size.toByte)
+      .writeByte(paramCnt.toByte)
+      // TODO: write # of registers used
+      .writeByte(0)
+      // instructions
+      .writeInt(instructions.size)
+      .writeInstrs(instructions)
+      // constants
+      .writeInt(constTable.size)
+      .writeConsts(
+        constTable.toList.sortBy(_._2)(Ordering[Int].reverse).map(_._1)
+      )
+      // functions
+      .writeInt(fnTable.size)
+
+    val res = fnTable.foldLeft(list)((buf, fn) =>
+      val dumped = toByteStream(fn)
+      buf.enqueueAll(dumped)
+    )
+    // turn into list and return
+    res
 end BytecodeWriter
