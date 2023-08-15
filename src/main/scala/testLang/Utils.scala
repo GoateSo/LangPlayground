@@ -1,4 +1,4 @@
-package testparser1
+package testLang
 
 import scala.io.Source
 
@@ -27,7 +27,7 @@ object Utils:
         numInputs
       )._1}""")
 
-  val BinopMap = Map[String, (Double, Double) => Double](
+  private val BinopMap = Map[String, (Double, Double) => Double](
     "+" -> (_ + _),
     "-" -> (_ - _),
     "*" -> (_ * _),

@@ -1,4 +1,4 @@
-package testparser1
+package testLang
 
 enum Instruction:
   case ADD(a: Int, b: Int, c: Int)

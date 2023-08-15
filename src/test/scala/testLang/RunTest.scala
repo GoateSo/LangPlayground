@@ -1,14 +1,14 @@
-package testparser1
+package testLang
 
 import munit.FunSuite
 import java.io.OutputStream
 
 class RunTest extends FunSuite:
   test("run program2 with File Directory") {
-    import Utils.InputType.*
+    import testLang.Utils.InputType.*
     val out = new java.io.ByteArrayOutputStream()
     Console.withOut(out) {
-      Utils.run(
+      testLang.Utils.run(
         FileName,
         "TestPrograms/program2.blah",
         List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)

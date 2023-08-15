@@ -1,4 +1,4 @@
-package testparser1
+package testLang
 import TreeNode.*
 import Instruction.*
 
@@ -143,6 +143,7 @@ case class Chunk(
   def addFn(fn: Chunk): Chunk =
     this.copy(fnTable = fnTable :+ fn)
   def addSymbol(name: String, ind: Int): Chunk =
+    assert(symTable.size < 0x100, ">= 256 locals in function")
     this.copy(symTable = symTable + (name -> ind))
   def addUpval(name: String, ind: Int): Chunk =
     this.copy(upvalTable = upvalTable + (name -> ind))
@@ -156,10 +157,10 @@ object Codegen:
     val consts = st.constTable
     if consts.contains(value) then (consts(value), st)
     else
-      val nInd = -consts.size - 1
+      val nInd = consts.size + 0x100
       (nInd, st.copy(constTable = consts + (value -> nInd)))
 
-  def findUpval(name: String, parent: Chunk): (UpvalFlag, Int) =
+  private inline def findUpval(name: String, parent: Chunk): (UpvalFlag, Int) =
     if parent == null then (UPVAL, -1)
     // in parent symbol table: return that it's local, and that it's a local in the parent
     else if parent.symTable.contains(name) then (LOCAL, parent.symTable(name))
@@ -200,7 +201,7 @@ object Codegen:
 
   // produce a list of psuedo-instructions (move/getupval) that indicate where the function's nth
   // upvalue is located, either as MOVE 0 X or GETUPVAL 0 X depending on whether it's local to the parent
-  def psuedoInstrs(fn: Chunk): List[Instruction] =
+  private inline def psuedoInstrs(fn: Chunk): List[Instruction] =
     val list = fn.upvalTable.foldLeft(IndexedSeq.fill(fn.upvalTable.size)("")) {
       case (acc, (name, ind)) => acc.updated(ind, name)
     }
@@ -344,4 +345,18 @@ object Codegen:
     case Program(stmts) =>
       stmts.foldLeft(state) { (st, stmt) => processStmt(stmt, st) }
     case _ => throw Exception("invalid statement")
+
+  def generate(tree: TreeNode): Chunk =
+    processStmt(
+      tree,
+      Chunk(
+        instructions = Nil,
+        constTable = Map.empty,
+        symTable = Map.empty,
+        upvalTable = Map.empty,
+        fnTable = Nil,
+        paramCnt = 0,
+        parent = null
+      )
+    )
 end Codegen

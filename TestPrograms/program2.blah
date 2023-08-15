@@ -1,6 +1,6 @@
-let f(x,y) = (PI^2+x^2+y^2)^0.5
-let g = f(PI^2,4)*3
+let f(x,y) = (3^2+x^2+y^2)^0.5
+let g = f(3^2,4)*3
 print(g)
-print(PI,3,5)
+print(3,3,5)
 print(g^2)
 return g+3*$3

@@ -1,9 +1,11 @@
-package testparser1
+package testLang
 
 import java.nio.ByteBuffer
 import Instruction.*
 import Codegen.*
 import scala.collection.immutable.Queue
+import java.io.File
+import java.io.FileOutputStream
 /*
 -- Notations:
 
@@ -67,15 +69,15 @@ object BytecodeWriter:
   // iABC format
   // CCCCCCCCCBBBBBBBBBAAAAAAAAOOOOOO
   // 9 bit- 9 bit- 8 bit- 6 bit
-  inline def toInst(inline op: Int, a: Int, b: Int, c: Int): Int =
+  private inline def toInst(inline op: Int, a: Int, b: Int, c: Int): Int =
     (op & 0x3f) | ((a & 0xff) << 6) | ((b & 0x1ff) << 14) | ((c & 0x1ff) << 23)
   // iABx format
   // BBBBBBBBBBBBBBBBBAAAAAAAAOOOOOO
   // 18 bit- 8 bit- 6 bit
-  inline def toInst(inline op: Int, a: Int, bx: Int): Int =
+  private inline def toInst(inline op: Int, a: Int, bx: Int): Int =
     (op & 0x3f) | ((a & 0xff) << 6) | ((bx & 0x3ffff) << 14)
 
-  inline def toOpCode(ist: Instruction): Int = ist match
+  private inline def toOpCode(ist: Instruction): Int = ist match
     case ADD(a, b, c)   => toInst(12, a, b, c)
     case SUB(a, b, c)   => toInst(13, a, b, c)
     case MUL(a, b, c)   => toInst(14, a, b, c)
@@ -91,7 +93,7 @@ object BytecodeWriter:
     case LOADK(a, bx)   => toInst(1, a, bx)
     case MOVE(a, b)     => toInst(0, a, b, 0)
 
-  inline def constBytes(c: Double): Array[Byte] =
+  private inline def constBytes(c: Double): Array[Byte] =
     ByteBuffer
       .allocate(8)
       .putDouble(c)
@@ -99,9 +101,9 @@ object BytecodeWriter:
       .reverse // maybe not needed?
 
   extension (buf: Queue[Byte])
-    def writeByte(b: Byte): Queue[Byte] = buf.enqueue(b)
+    private def writeByte(b: Byte): Queue[Byte] = buf.enqueue(b)
     // little write int:
-    def writeInt(i: Int): Queue[Byte] =
+    private def writeInt(i: Int): Queue[Byte] =
       buf.enqueueAll(
         List(
           (i & 0xff).toByte,
@@ -110,11 +112,30 @@ object BytecodeWriter:
           ((i >> 24) & 0xff).toByte
         ) // .reverse?
       )
-    def writeInstrs(xs: List[Instruction]): Queue[Byte] =
+    private def writeInstrs(xs: List[Instruction]): Queue[Byte] =
       xs.foldLeft(buf)((buf, x) => buf.writeInt(toOpCode(x)))
 
-    def writeConsts(xs: List[Double]): Queue[Byte] =
+    private def writeConsts(xs: List[Double]): Queue[Byte] =
       xs.foldLeft(buf)((buf, x) => buf.enqueueAll(constBytes(x)))
+
+  private def getMaxRegister(c: Chunk): Int =
+    c.instructions.foldLeft(0)((acc, x) =>
+      x match
+        case MOVE(a, b)     => Math.max(a, acc)
+        case LOADK(a, _)    => Math.max(a, acc)
+        case GETUPVAL(a, _) => Math.max(a, acc)
+        case ADD(a, b, c)   => Math.max(a, acc)
+        case SUB(a, b, c)   => Math.max(a, acc)
+        case MUL(a, b, c)   => Math.max(a, acc)
+        case DIV(a, b, c)   => Math.max(a, acc)
+        case MOD(a, b, c)   => Math.max(a, acc)
+        case POW(a, b, c)   => Math.max(a, acc)
+        case UNM(a, b)      => Math.max(a, acc)
+        case INPUT(a, b)    => Math.max(a, acc)
+        case RETURN(a)      => Math.max(a, acc)
+        case CALL(a, b)     => Math.max(a, acc)
+        case CLOSURE(a, _)  => Math.max(a, acc)
+    )
   // Chunk as top level function block
   // Int: line defined
   // Int: last line defined
@@ -138,7 +159,7 @@ object BytecodeWriter:
       _
     ) = program
     // val lastLine = line + instructions.size
-    println(constTable.toList.sortBy(_._2)(Ordering[Int].reverse).map(_._1))
+    println(constTable.toList.sortBy(_._2).map(_._1))
     val list = Queue
       .empty[Byte] // preamble
       // .writeInt(line)
@@ -146,14 +167,14 @@ object BytecodeWriter:
       .writeByte(upvalTable.size.toByte)
       .writeByte(paramCnt.toByte)
       // TODO: write # of registers used
-      .writeByte(0)
+      .writeByte((getMaxRegister(program) + 1).toByte)
       // instructions
       .writeInt(instructions.size)
       .writeInstrs(instructions)
       // constants
       .writeInt(constTable.size)
       .writeConsts(
-        constTable.toList.sortBy(_._2)(Ordering[Int].reverse).map(_._1)
+        constTable.toList.sortBy(_._2).map(_._1)
       )
       // functions
       .writeInt(fnTable.size)
@@ -164,4 +185,10 @@ object BytecodeWriter:
     )
     // turn into list and return
     res
+
+  def writeToFile(program: Chunk, fileName: String = "bytecode.out") =
+    val bytes = toByteStream(program)
+    val file = File(fileName)
+    val output = FileOutputStream(file)
+    output.write(bytes.toArray)
 end BytecodeWriter

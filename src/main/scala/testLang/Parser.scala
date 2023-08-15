@@ -1,4 +1,4 @@
-package testparser1
+package testLang
 // make a recursive descent expression parser
 /*
 grammar:
