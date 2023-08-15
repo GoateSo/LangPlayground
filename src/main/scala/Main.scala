@@ -4,7 +4,6 @@ import regexmatch.*
 import util.parsercomb.*
 import util.parsercomb.MyParsers.*
 
-import testparser1.*
 import Codegen.*
 import testLang.BytecodeWriter
 import testLang.Displayer

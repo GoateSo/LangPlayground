@@ -64,11 +64,11 @@ object VM:
     var regs = target.registers
     var consts = target.constants
     var cl = pstate.closures.last
-    boundary:
+    boundary {
       while target.pc < instrs.length do
         println((target.pc, asInstr(instrs(target.pc))))
-        println(s"regs: ${regs.toList}" )
-        println(s"frames: ${pstate.frames.toList}" )
+        println(s"regs: ${regs.toList}")
+        println(s"frames: ${pstate.frames.toList}")
         asInstr(instrs(target.pc)) match
           case LOADK(a, bx) =>
             regs(a) = consts(bx - 256)
@@ -92,7 +92,7 @@ object VM:
             val retVal = regs(a)
             pstate.frames.remove(pstate.frames.length - 1)
             pstate.closures.remove(pstate.closures.length - 1)
-            println("returning + " +  pstate.frames + " " + retVal)
+            println("returning + " + pstate.frames + " " + retVal)
             if pstate.frames.length > 0 then
               target = pstate.frames.last
               instrs = target.instructions
@@ -104,9 +104,10 @@ object VM:
               assert((instrs(target.pc) & 0x3f) == OP_CALL)
               regs(getA(instrs(target.pc))) = retVal
               println("returning to " + target)
-            else retVal match
-              case d: Double => return d
-              case _          => throw new Exception("invalid return value")
+            else
+              retVal match
+                case d: Double => return d
+                case _         => throw new Exception("invalid return value")
           case CALL(a, b) => // call function at register a w/ b-1 args
             val fnInd = regs(a) match
               case i: Int    => i
@@ -164,6 +165,7 @@ object VM:
               case x         => throw new Exception(s"invalid operand (${x})")
         target.pc += 1
       -1
+    }
   def run(p: Prototype, inputs: Array[Double]) =
     execute(
       State( // inital state w/ single frame

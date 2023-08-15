@@ -15,7 +15,7 @@ class RunTest extends FunSuite:
       )
     }
     val lines = out.toString().split("\n")
-    val g = 3 * Math.sqrt(Math.pow(math.Pi, 2) + Math.pow(math.Pi, 4) + 16)
+    val g = 3 * Math.sqrt(Math.pow(3, 2) + Math.pow(3, 4) + 16)
     assertEquals(lines(0).toDouble, g, 0.001)
     assertEquals(lines(1).split("\\s+").length, 3)
     assertEquals(lines(2).toDouble, g * g, 0.001)
