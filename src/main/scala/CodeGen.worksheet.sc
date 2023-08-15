@@ -13,7 +13,8 @@ let x = 1 + 2 * 3
 let y = 4 + 5 * 6
 let f(x) = x * 2
 let g(x,a,b) = x * 3 + y*a
-return g(x,y,3)
+let a = f(5)
+return g(a,f(2),1)
 """
 
 val tokens = Tokenizer.tokenize(program)

@@ -1,6 +1,7 @@
 package testLang
 
 import scala.io.Source
+import java.io.ByteArrayInputStream
 
 object Utils:
   import TreeNode.*
@@ -170,3 +171,26 @@ object Utils:
         stmts.foldLeft(0.0, env) { (acc, stmt) =>
           eval(stmt, acc._2, inputs)
         }
+  // differing compilation and interpretation option
+  def compile(s: String, fold: Boolean = true): Array[Byte] =
+    val tree = Parser.parse(Tokenizer.tokenize(s))
+    BytecodeWriter
+      .toByteStream(
+        Codegen.generate(
+          if fold then Utils.optimize(tree) else tree
+        )
+      )
+      .toArray
+  def compile(s: String, fileName: String): Unit =
+    val tree = Parser.parse(Tokenizer.tokenize(s))
+    BytecodeWriter.writeToFile(
+      Codegen.generate(Utils.optimize(tree)),
+      fileName
+    )
+  def interpret(s: String, inputs: Array[Double]): Double =
+    VM.run(compile(s, true), inputs)
+
+  def interpret(xs: Array[Byte], inputs: Array[Double]): Double =
+    VM.run(xs, inputs)
+
+end Utils

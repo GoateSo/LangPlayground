@@ -2,6 +2,7 @@ package testLang
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.boundary
+import java.io.ByteArrayInputStream
 
 def getOpCode(instr: Int): Int = instr & 0x3f
 def getA(instr: Int): Int = (instr >> 6) & 0xff
@@ -11,13 +12,6 @@ def getC(instr: Int): Int = (instr >> 23) & 0x1ff
 val OP_MOVE = 0
 val OP_LOADK = 1
 val OP_GETUPVAL = 4
-val OP_ADD = 12
-val OP_SUB = 13
-val OP_MUL = 14
-val OP_DIV = 15
-val OP_MOD = 16
-val OP_POW = 17
-val OP_UNM = 18
 val OP_INPUT = 19
 val OP_RETURN = 30
 val OP_CALL = 28
@@ -91,7 +85,8 @@ object VM:
           case RETURN(a) => // return from function w/ value in register a
             val retVal = regs(a)
             pstate.frames.remove(pstate.frames.length - 1)
-            pstate.closures.remove(pstate.closures.length - 1)
+            // TODO: fix nested calling semantics
+            // pstate.closures.remove(pstate.closures.length - 1)
             println("returning + " + pstate.frames + " " + retVal)
             if pstate.frames.length > 0 then
               target = pstate.frames.last
@@ -112,6 +107,7 @@ object VM:
             val fnInd = regs(a) match
               case i: Int    => i
               case d: Double => throw Exception("can't call number")
+            println(pstate.closures)
             val closure = pstate.closures(fnInd)
             // create new stack frame for call
             val nframe = StackFrame(
@@ -166,7 +162,8 @@ object VM:
         target.pc += 1
       -1
     }
-  def run(p: Prototype, inputs: Array[Double]) =
+  def run(bytes: Array[Byte], inputs: Array[Double]) =
+    val p = Reader.parse(ByteArrayInputStream(bytes))
     execute(
       State( // inital state w/ single frame
         ArrayBuffer(

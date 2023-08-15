@@ -14,13 +14,8 @@ let x = 1 + 2 * 3
 let y = 4 + 5 * 6
 let f(x) = x * 2
 let g(x,a,b) = x * 3 + y*a
-return f(x)
+return f(x) + f(y)
 """
-  val tokens = Tokenizer.tokenize(program)
-  val tree = Utils.optimize(Parser.parse(tokens))
-
-  val stack =
-    processStmt(tree, Chunk(Nil, Map(), Map(), Map(), Nil, 0))
-
-  val bytecode = BytecodeWriter.toByteStream(stack).toList
-  Displayer.disp(bytecode)
+  val code = Utils.compile(program)
+  val res = Utils.interpret(code, Array.empty[Double])
+  println(res)

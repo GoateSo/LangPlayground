@@ -178,17 +178,16 @@ object BytecodeWriter:
       )
       // functions
       .writeInt(fnTable.size)
-
-    val res = fnTable.foldLeft(list)((buf, fn) =>
+    // write function impls
+    fnTable.foldLeft(list)((buf, fn) =>
       val dumped = toByteStream(fn)
       buf.enqueueAll(dumped)
     )
-    // turn into list and return
-    res
 
   def writeToFile(program: Chunk, fileName: String = "bytecode.out") =
     val bytes = toByteStream(program)
     val file = File(fileName)
     val output = FileOutputStream(file)
     output.write(bytes.toArray)
+
 end BytecodeWriter
