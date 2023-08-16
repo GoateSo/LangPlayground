@@ -37,7 +37,7 @@ iABx format:
 extended signed register (sBx) unused b/c JMP and FORLOOP instructions aren't present
 
 operations: args : description
-  LOADK: A, Bx         : R[A] := C[Bx] // Bx is an index into the constant table
+  LOADK: A, Bx     : R[A] := C[Bx] // Bx is an index into the constant table
   MOVE: A, B       : R[A] := R[B]
   ADD: A, B, C     : R[A] := RC[B] + RC[B]
   SUB: A, B, C     : R[A] := RC[B] - RC[B]
@@ -360,5 +360,4 @@ object Codegen:
       )
     )
 
-  
 end Codegen

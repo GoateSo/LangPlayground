@@ -18,4 +18,4 @@ return f(x) + f(y)
 """
   val code = Utils.compile(program)
   val res = Utils.interpret(code, Array.empty[Double])
-  println(res)
+  println(s"result: $res")

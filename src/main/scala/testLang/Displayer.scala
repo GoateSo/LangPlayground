@@ -3,7 +3,7 @@ package testLang
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 
-def asInstr(inst: Int): Instruction =
+private def asInstr(inst: Int): Instruction =
   val op = inst & 0x3f
   val a = (inst >> 6) & 0xff
   val b = (inst >> 14) & 0x1ff

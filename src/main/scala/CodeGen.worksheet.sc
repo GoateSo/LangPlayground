@@ -12,9 +12,9 @@ val program = """
 let x = 1 + 2 * 3
 let y = 4 + 5 * 6
 let f(x) = x * 2
-let g(x,a,b) = x * 3 + y*a
+let g(x,a,b) = x * 3 + y*a - b
 let a = f(5)
-return g(a,f(2),1)
+return g(g(1,1,1),f(2),g(1,f(1),1))
 """
 
 val tokens = Tokenizer.tokenize(program)
@@ -33,10 +33,6 @@ Displayer.decompile(strm)
 
 // BytecodeWriter.writeToFile(st)
 
-val proto = Reader.parse(
-  ByteArrayInputStream(
-    BytecodeWriter.toByteStream(st).toArray
-  )
-)
+val xs = BytecodeWriter.toByteStream(st).toArray
 
-VM.run(proto, Array.empty)
+VM.run(xs, Array.emptyDoubleArray)

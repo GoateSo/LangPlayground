@@ -118,7 +118,7 @@ object BytecodeWriter:
     private def writeConsts(xs: List[Double]): Queue[Byte] =
       xs.foldLeft(buf)((buf, x) => buf.enqueueAll(constBytes(x)))
 
-  private def getMaxRegister(c: Chunk): Int =
+  private inline def getMaxRegister(c: Chunk): Int =
     c.instructions.foldLeft(0)((acc, x) =>
       x match
         case MOVE(a, b)     => Math.max(a, acc)
@@ -158,15 +158,10 @@ object BytecodeWriter:
       paramCnt,
       _
     ) = program
-    // val lastLine = line + instructions.size
-    println(constTable.toList.sortBy(_._2).map(_._1))
     val list = Queue
       .empty[Byte] // preamble
-      // .writeInt(line)
-      // .writeInt(lastLine)
       .writeByte(upvalTable.size.toByte)
       .writeByte(paramCnt.toByte)
-      // TODO: write # of registers used
       .writeByte((getMaxRegister(program) + 1).toByte)
       // instructions
       .writeInt(instructions.size)

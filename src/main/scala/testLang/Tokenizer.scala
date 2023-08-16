@@ -21,7 +21,7 @@ object Tokenizer:
     case Op(value: String)
   // import Token.*
 
-  private def isSpecial(c: Char) =
+  private inline def isSpecial(c: Char) =
     ops(c) || schars(c)
 
   // replace (State, Char, String) with (State, String, String) to make it match the lua impl
@@ -41,7 +41,6 @@ object Tokenizer:
       else if isSpecial(c) then (Op, s"$c", cval)
       else if c.isWhitespace then (Empty, s"$c", cval)
       else
-        println(cval)
         throw Exception(
           s"Invalid character after ident state: ($c)"
         ) // TODO - different from lua impl, maybe make match?

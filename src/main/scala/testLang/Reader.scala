@@ -8,36 +8,11 @@ import java.nio.file.Files
 // avoid having tagged union associated w/ more complex types
 // Double => number, Int => ptr (well more accurately, index) to function
 type RegValue = Double | Int
-type Upval = RegValue | (Int, Int)
-
-class Prototype(
-    val upvalues: Int,
-    val consts: Array[Double],
-    val chunk: Array[Int],
-    val arity: Int = 0,
-    val protos: Array[Prototype] = Array.empty,
-    val regs: Int
-) {
-  override def toString(): String =
-    s"\nconsts: ${consts.mkString(", ")}\nchunk: ${chunk
-        .map(asInstr)
-        .mkString("\n", "\n", "")
-        .indent(1)}registers:$regs\narity: $arity\nprotos: ${protos.mkString.indent(2)}"
-}
-
-class Closure(
-    val proto: Prototype,
-    val upvals: Array[Upval]
-)
-def newClosure(proto: Prototype): Closure =
-  Closure(
-    proto,
-    Array.ofDim(proto.upvalues)
-  )
 
 // reads the bytecode and turns it into a nested prototype
 object Reader:
   import ByteOperations.*
+  import Func.*
 
   // parse file into nested prototypes
   def parse(bcStream: ByteArrayInputStream): Prototype =
