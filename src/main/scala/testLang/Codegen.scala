@@ -308,9 +308,13 @@ object Codegen:
     case FunCall(name, args) =>
       processFunCall(name, args, state, state.symTable.size)
     case Return(expr) =>
-      val reg = state.symTable.size
-      val nst = loadValue(expr, reg, state)
-      nst.copy(instructions = nst.instructions :+ RETURN(reg))
+      expr match
+        case Ident(name) =>
+          state.addInstructions(RETURN(state.symTable(name)))
+        case _ =>
+          val reg = state.symTable.size
+          val nst = loadValue(expr, reg, state)
+          nst.addInstructions(RETURN(reg))
     case FunDef(name, args, body) =>
       // add function itself as a local variable
       val parState = state.addSymbol(name, state.symTable.size)
