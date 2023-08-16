@@ -295,3 +295,39 @@ class UtilSuite extends FunSuite:
     """.strip().split("\n").map(_.strip()).toList
     )
   }
+  test("optimize simple binop") {
+    val results = testLang.Utils.optimize(
+      BinOp("+", Num(1), Num(2))
+    )
+    assertEquals(results, Num(3))
+  }
+  test("optimize simple with unop") {
+    val results = testLang.Utils.optimize(
+      BinOp("+", Num(1), UnOp("-", Num(2)))
+    )
+    assertEquals(results, Num(-1))
+  }
+  test("generalized optimization") {
+    val tree = Parser.parse(
+      Tokenizer.tokenize(
+        """
+        let a = 1 * 2 + 3
+        let b = 4 / 2 * -1
+        let c = 1^2 + 2^3
+        return a + b + c
+        """.stripIndent()
+      )
+    )
+    val res = testLang.Utils.optimize(tree)
+    assertEquals(
+      res,
+      Program(
+        List(
+          VarDef("a", Num(5)),
+          VarDef("b", Num(-2)),
+          VarDef("c", Num(9)),
+          Return(BinOp("+", BinOp("+", Ident("a"), Ident("b")), Ident("c")))
+        )
+      )
+    )
+  }

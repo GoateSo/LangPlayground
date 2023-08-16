@@ -47,19 +47,19 @@ class ParseSuite extends FunSuite:
   test("parse simple expressions") {
     val tokens = testLang.Tokenizer.tokenize("1 + 1")
     val tree = testLang.Parser.expr(tokens)._1
-    assertEquals(tree, BinOp("+", Num(1), Num(1)))
+    assertEquals(tree, Some(BinOp("+", Num(1), Num(1))))
   }
   test("parse simple expressions with parens") {
     val tokens = testLang.Tokenizer.tokenize("(1 + 1) * 2")
     val tree = testLang.Parser.expr(tokens)._1
-    assertEquals(tree, BinOp("*", BinOp("+", Num(1), Num(1)), Num(2)))
+    assertEquals(tree, Some(BinOp("*", BinOp("+", Num(1), Num(1)), Num(2))))
   }
   test("parse simple expressions with parens and unary ops") {
     val tokens = testLang.Tokenizer.tokenize("(1 + 1) * -$2")
     val tree = testLang.Parser.expr(tokens)._1
     assertEquals(
       tree,
-      BinOp("*", BinOp("+", Num(1), Num(1)), UnOp("-", UnOp("$", Num(2))))
+      Some(BinOp("*", BinOp("+", Num(1), Num(1)), UnOp("-", UnOp("$", Num(2)))))
     )
   }
   test("parse simple expressions with parens and unary ops and vars") {
@@ -67,7 +67,9 @@ class ParseSuite extends FunSuite:
     val tree = testLang.Parser.expr(tokens)._1
     assertEquals(
       tree,
-      BinOp("*", BinOp("+", Num(1), Num(1)), UnOp("-", UnOp("$", Ident("x"))))
+      Some(
+        BinOp("*", BinOp("+", Num(1), Num(1)), UnOp("-", UnOp("$", Ident("x"))))
+      )
     )
   }
   test(
@@ -77,14 +79,16 @@ class ParseSuite extends FunSuite:
     val tree = testLang.Parser.expr(tokens)._1
     assertEquals(
       tree,
-      BinOp(
-        "+",
+      Some(
         BinOp(
-          "*",
-          BinOp("+", Num(1), Num(1)),
-          UnOp("-", UnOp("$", Ident("x")))
-        ),
-        FunCall("f", List(Num(1), Num(2)))
+          "+",
+          BinOp(
+            "*",
+            BinOp("+", Num(1), Num(1)),
+            UnOp("-", UnOp("$", Ident("x")))
+          ),
+          FunCall("f", List(Num(1), Num(2)))
+        )
       )
     )
   }
@@ -238,4 +242,19 @@ class ParseSuite extends FunSuite:
     intercept[Exception] {
       testLang.Parser.parse(tokens)
     }
+  }
+  test("check correctness of parsed, non associative ops") {
+    var tokens = testLang.Tokenizer.tokenize("1 - 2 - 3")
+    println(testLang.Parser.expr(tokens)._1)
+    assertEquals(
+      testLang.Parser.expr(tokens)._1,
+      Some(BinOp("-", BinOp("-", Num(1), Num(2)), Num(3))),
+      "bad associativity for '-'"
+    )
+    tokens = testLang.Tokenizer.tokenize("10 / 5 / 2")
+    assertEquals(
+      testLang.Parser.expr(tokens)._1,
+      Some(BinOp("/", BinOp("/", Num(10), Num(5)), Num(2))),
+      "bad associativity for '-'"
+    )
   }

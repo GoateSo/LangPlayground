@@ -5,14 +5,14 @@ class EvalSuite extends FunSuite:
   test("evaluate simple expressions") {
     var ptree = testLang.Parser.expr(testLang.Tokenizer.tokenize("1 + 1"))._1
     assertEquals(
-      testLang.Utils.eval(ptree, Map.empty, List.empty)._1,
+      testLang.Utils.eval(ptree.get, Map.empty, List.empty)._1,
       2.0,
       0.0001
     )
     ptree =
       testLang.Parser.expr(testLang.Tokenizer.tokenize("1+2*(-3^-4+5)"))._1
     assertEquals(
-      testLang.Utils.eval(ptree, Map.empty, List.empty)._1,
+      testLang.Utils.eval(ptree.get, Map.empty, List.empty)._1,
       1 + 2 * (-math.pow(3, -4) + 5),
       0.0001
     )
