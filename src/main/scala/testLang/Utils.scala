@@ -187,10 +187,12 @@ object Utils:
       Codegen.generate(Utils.optimize(tree)),
       fileName
     )
-  def interpret(s: String, inputs: Array[Double]): Double =
-    VM.run(compile(s, true), inputs)
 
-  def interpret(xs: Array[Byte], inputs: Array[Double]): Double =
-    VM.run(xs, inputs)
+  def interpret(
+      inputType: InputType,
+      s: String,
+      inputs: Array[Double]
+  ): Double =
+    VM.run(compile(s, true), inputs)
 
 end Utils

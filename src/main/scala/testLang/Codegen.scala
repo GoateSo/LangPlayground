@@ -136,7 +136,7 @@ case class Chunk(
     fnTable: List[Chunk],
     paramCnt: Int,
     parent: Chunk = null
-) {
+):
   // helper functions
   def addInstructions(is: Instruction*): Chunk =
     this.copy(instructions = instructions ++ is)
@@ -149,7 +149,6 @@ case class Chunk(
     this.copy(upvalTable = upvalTable + (name -> ind))
   def setParent(p: Chunk): Chunk =
     this.copy(parent = p)
-}
 
 object Codegen:
   // get constant index from constant table,create new one if not present
@@ -192,11 +191,10 @@ object Codegen:
         st2.addInstructions(LOADK(register, constInd))
       case Ident(name) =>
         val (symInd, st2, flag) = getSym(st, name)
-        st2.addInstructions(
+        st2.addInstructions:
           flag match
             case LOCAL => MOVE(register, symInd)
             case UPVAL => GETUPVAL(register, symInd)
-        )
       case _ => processExpr(tree, st, register)
 
   // produce a list of psuedo-instructions (move/getupval) that indicate where the function's nth
@@ -205,12 +203,11 @@ object Codegen:
     val list = fn.upvalTable.foldLeft(IndexedSeq.fill(fn.upvalTable.size)("")) {
       case (acc, (name, ind)) => acc.updated(ind, name)
     }
-    list.foldRight(List[Instruction]())((name, acc) =>
+    list.foldRight(List[Instruction]()): (name, acc) =>
       val (flag, ind) = findUpval(name, fn.parent)
       flag match
         case UPVAL => GETUPVAL(0, ind) :: acc
         case LOCAL => MOVE(0, ind) :: acc
-    )
 
   private inline def varAssign(
       varName: String,
@@ -253,9 +250,9 @@ object Codegen:
     // get register holding function prototype index
     val init = loadValue(Ident(name), regA, state)
     // process the arguments: fold w/ state, instruction list, and current register
-    val (nst, _) = args.foldLeft(init, regA + 1) { case ((st, reg), arg) =>
-      (processExpr(arg, st, reg), reg + 1)
-    }
+    val (nst, _) = args.foldLeft(init, regA + 1):
+      case ((st, reg), arg) => (processExpr(arg, st, reg), reg + 1)
+
     nst.addInstructions(CALL(regA, args.size + 1)) // call instruction
 
   def processExpr(
@@ -268,7 +265,7 @@ object Codegen:
         val (st2, op1, reg1) = procssOp(left, state, register)
         val (st3, op2, _) = procssOp(right, st2, reg1)
         // generate the instruction
-        st3.addInstructions(
+        st3.addInstructions:
           op match
             case "+" => ADD(register, op1, op2)
             case "-" => SUB(register, op1, op2)
@@ -280,10 +277,10 @@ object Codegen:
               throw Exception(
                 s"invalid binary operator ${op} in expression ${tree}"
               )
-        )
+
       case UnOp(op, right) =>
         val (st2, op1, _) = procssOp(right, state, register)
-        st2.addInstructions(
+        st2.addInstructions:
           op match
             case "-" => UNM(register, op1)
             case "$" => INPUT(register, op1)
@@ -291,15 +288,14 @@ object Codegen:
               throw Exception(
                 s"invalid unary operator ${op} in expression ${tree}"
               )
-        )
       case FunCall(name, args) => processFunCall(name, args, state, register)
       case Num(x)              => loadValue(tree, register, state)
       case Ident(name)         => loadValue(tree, register, state)
       case _                   => throw Exception(s"invalid expression ${tree}")
 
   def processStmt(
-      tree: TreeNode,
-      state: Chunk
+      state: Chunk,
+      tree: TreeNode
   ): Chunk = tree match
     case VarDef(name, value) =>
       varAssign(name, value, state.symTable.size, state)
@@ -340,19 +336,19 @@ object Codegen:
           ): _*
         )
       // add upvalues to parent function(s), in order of their index
-      funbody.upvalTable.toList.sortBy(_._2).foldLeft(afterClosure) {
-        case (st, (name, ind)) => // if upvalue not present, add to upvaltable
-          if st.symTable.contains(name) || st.upvalTable.contains(name)
-          then st
-          else st.addUpval(name, st.upvalTable.size)
-      }
+      funbody.upvalTable.toList
+        .sortBy(_._2)
+        .foldLeft(afterClosure):
+          case (st, (name, ind)) => // if upvalue not present, add to upvaltable
+            if st.symTable.contains(name) || st.upvalTable.contains(name)
+            then st
+            else st.addUpval(name, st.upvalTable.size)
     case Program(stmts) =>
-      stmts.foldLeft(state) { (st, stmt) => processStmt(stmt, st) }
+      stmts.foldLeft(state)(processStmt)
     case _ => throw Exception("invalid statement")
 
   def generate(tree: TreeNode): Chunk =
     processStmt(
-      tree,
       Chunk(
         instructions = Nil,
         constTable = Map.empty,
@@ -361,7 +357,8 @@ object Codegen:
         fnTable = Nil,
         paramCnt = 0,
         parent = null
-      )
+      ),
+      tree
     )
 
 end Codegen

@@ -11,6 +11,8 @@ import Codegen.*
 val toChunk =
   Tokenizer.tokenize andThen Parser.parse andThen Codegen.generate
 
-val prog = "let a = 1 let b = 2 let f(x) = x + b + a return f(1)"
+val prog = "return 1+2/3-4*1^2*-1"
+val tree = Parser.parse(Tokenizer.tokenize(prog))
+Utils.eval(tree, Map.empty, List.empty)
+Utils.dispAST(tree)
 val chunk = toChunk(prog)
-chunk.fnTable.head.instructions.foreach(println)

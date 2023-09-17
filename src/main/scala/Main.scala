@@ -16,6 +16,5 @@ let f(x) = x * 2
 let g(x,a,b) = x * 3 + y*a
 return f(x) + f(y)
 """
-  val code = Utils.compile(program)
-  val res = Utils.interpret(code, Array.empty[Double])
+  val res = Utils.interpret(Utils.InputType.Prog, program, Array.empty[Double])
   println(s"result: $res")

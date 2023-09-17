@@ -3,7 +3,7 @@ import munit.FunSuite
 import Chunk.*
 import Instruction.*
 
-private def toChunk =
+val toChunk =
   Tokenizer.tokenize andThen Parser.parse andThen Codegen.generate
 
 class CodeGenSuite extends FunSuite:
@@ -80,6 +80,43 @@ class CodeGenSuite extends FunSuite:
         GETUPVAL(2, 1),
         ADD(1, 1, 2),
         RETURN(1)
+      )
+    )
+  }
+  test("similar expressions") {
+    val code = toChunk("let a = 5-1-1 let b = a*3/2 return b")
+    assertEquals(
+      code.constTable,
+      Map(5.0 -> 256, 1.0 -> 257, 3.0 -> 258, 2.0 -> 259)
+    )
+    assertEquals(
+      code.instructions,
+      List(
+        SUB(0, 256, 257),
+        SUB(0, 0, 257),
+        MUL(1, 0, 258),
+        DIV(1, 1, 259),
+        RETURN(1)
+      )
+    )
+  }
+  test("complex expression") {
+    val code = toChunk("return 1+2/3-4*1^2*-1")
+    assertEquals(
+      code.constTable,
+      Map(1.0 -> 256, 2.0 -> 257, 3.0 -> 258, 4.0 -> 259)
+    )
+    assertEquals(
+      code.instructions,
+      List(
+        DIV(0, 257, 258),
+        ADD(0, 256, 0),
+        POW(1, 256, 257),
+        MUL(1, 259, 1),
+        UNM(2, 256),
+        MUL(1, 1, 2),
+        SUB(0, 0, 1),
+        RETURN(0)
       )
     )
   }

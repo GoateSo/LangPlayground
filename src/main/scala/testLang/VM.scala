@@ -21,31 +21,33 @@ object PState:
       var retVal: Double = -1
   )
 
+object OpCode:
+  val OP_MOVE = 0
+  val OP_LOADK = 1
+  val OP_GETUPVAL = 4
+  val OP_ADD = 12
+  val OP_SUB = 13
+  val OP_MUL = 14
+  val OP_DIV = 15
+  val OP_MOD = 16
+  val OP_POW = 17
+  val OP_UNM = 18
+  val OP_INPUT = 19
+  val OP_CALL = 28
+  val OP_RETURN = 30
+  val OP_CLOSURE = 36
+
+  inline def getOpCode(instr: Int): Int = instr & 0x3f
+  inline def getA(instr: Int): Int = (instr >> 6) & 0xff
+  inline def getB(instr: Int): Int = (instr >> 14) & 0x1ff
+  inline def getC(instr: Int): Int = (instr >> 23) & 0x1ff
+  inline def getBx(instr: Int): Int = (instr >> 14) & 0x3ffff
+
 // imperfect but it shall do as a proof of concept
 object VM:
   import ByteOperations.*
   import PState.*
-
-  private val OP_MOVE = 0
-  private val OP_LOADK = 1
-  private val OP_GETUPVAL = 4
-  private val OP_ADD = 12
-  private val OP_SUB = 13
-  private val OP_MUL = 14
-  private val OP_DIV = 15
-  private val OP_MOD = 16
-  private val OP_POW = 17
-  private val OP_UNM = 18
-  private val OP_INPUT = 19
-  private val OP_CALL = 28
-  private val OP_RETURN = 30
-  private val OP_CLOSURE = 36
-
-  private inline def getOpCode(instr: Int): Int = instr & 0x3f
-  private inline def getA(instr: Int): Int = (instr >> 6) & 0xff
-  private inline def getB(instr: Int): Int = (instr >> 14) & 0x1ff
-  private inline def getC(instr: Int): Int = (instr >> 23) & 0x1ff
-  private inline def getBx(instr: Int): Int = (instr >> 14) & 0x3ffff
+  import OpCode.*
 
   private inline def getOpArg(
       i: Int

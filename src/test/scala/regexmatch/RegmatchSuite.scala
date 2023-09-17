@@ -3,14 +3,14 @@ package regexmatch
 import munit.FunSuite
 
 class RegmatchSuite extends FunSuite:
-  test ("single literal char match") {
+  test("single literal char match") {
     val matcher = new RegexMatcher("a")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("a"), true)
     assertEquals(matcher.matches("b"), false)
     assertEquals(matcher.matches("aa"), false)
   }
-  test ("concatenation of literal char match") {
+  test("concatenation of literal char match") {
     val matcher = new RegexMatcher("ab")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("ab"), true)
@@ -19,7 +19,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.matches("b"), false)
     assertEquals(matcher.matches("ba"), false)
   }
-  test ("concatenation of literal char match with wildcard") {
+  test("concatenation of literal char match with wildcard") {
     val matcher = new RegexMatcher("a.b")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("ab"), false)
@@ -29,7 +29,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.matches("b"), false)
     assertEquals(matcher.matches("ba"), false)
   }
-  test ("alternation of literal chars (2+ cases)") {
+  test("alternation of literal chars (2+ cases)") {
     val matcher = new RegexMatcher("(a|b)")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("a"), true)
@@ -47,7 +47,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(mat2.matches("ba"), false)
     assertEquals(mat2.matches("ac"), false)
   }
-  test ("alternation of groups of literal chars (2+ cases)") {
+  test("alternation of groups of literal chars (2+ cases)") {
     val matcher = new RegexMatcher("(abba|baab)")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("abba"), true)
@@ -66,17 +66,17 @@ class RegmatchSuite extends FunSuite:
     assertEquals(mat2.matches("abbc"), false)
     assertEquals(mat2.matches("abbababb"), false)
   }
-  test ("kleene star with literal char") {
+  test("kleene star with literal char") {
     val matcher = new RegexMatcher("a*")
     assertEquals(matcher.matches("a"), true)
     assertEquals(matcher.matches("aa"), true)
     assertEquals(matcher.matches("aaa"), true)
     assertEquals(matcher.matches("aaaab"), false)
     assertEquals(matcher.matches("b"), false)
-    assertEquals(matcher.matches(""),true)
-  
+    assertEquals(matcher.matches(""), true)
+
   }
-  test ("grouped kleene star") {
+  test("grouped kleene star") {
     val matcher = new RegexMatcher("(ab)*")
     assertEquals(matcher.matches(""), true)
     assertEquals(matcher.matches("ab"), true)
@@ -87,8 +87,8 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.matches("a"), false)
     assertEquals(matcher.matches("ba"), false)
   }
-  test ("sandwiched kleene star") {
-    val matcher =  new RegexMatcher("a.*b")
+  test("sandwiched kleene star") {
+    val matcher = new RegexMatcher("a.*b")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("ab"), true)
     assertEquals(matcher.matches("aab"), true)
@@ -98,7 +98,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.matches("b"), false)
     assertEquals(matcher.matches("ba"), false)
   }
-  test ("kleene star for alternative (2+ cases)") {
+  test("kleene star for alternative (2+ cases)") {
     val matcher = new RegexMatcher("(aa|b)*")
     assertEquals(matcher.matches(""), true)
     assertEquals(matcher.matches("aa"), true)
@@ -119,7 +119,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(mat2.matches("baabaabbaaaaca"), false)
     assertEquals(mat2.matches("baabacabbabaaa"), false)
   }
-  test ("optional value") {
+  test("optional value") {
     val matcher = new RegexMatcher("a?")
     assertEquals(matcher.matches(""), true)
     assertEquals(matcher.matches("a"), true)
@@ -127,7 +127,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.matches("b"), false)
     assertEquals(matcher.matches("ba"), false)
   }
-  test ("optional value with kleene star") {
+  test("optional value with kleene star") {
     val matcher = new RegexMatcher("a*b?")
     assertEquals(matcher.matches(""), true)
     assertEquals(matcher.matches("a"), true)
@@ -138,7 +138,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.matches("ba"), false)
     assertEquals(matcher.matches("baa"), false)
   }
-  test ("sandwiched optional value"){
+  test("sandwiched optional value") {
     val matcher = new RegexMatcher("ba?b")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("bb"), true)
@@ -147,7 +147,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.matches("b"), false)
     assertEquals(matcher.matches("ba"), false)
   }
-  test ("optional value outside alternation ") {
+  test("optional value outside alternation ") {
     val matcher = new RegexMatcher("(a|b)?")
     assertEquals(matcher.matches(""), true)
     assertEquals(matcher.matches("a"), true)
@@ -156,7 +156,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.matches("ab"), false)
     assertEquals(matcher.matches("ba"), false)
   }
-  test ("optional value inside alternation") {
+  test("optional value inside alternation") {
     val matcher = new RegexMatcher("(a?|b)")
     assertEquals(matcher.matches(""), true)
     assertEquals(matcher.matches("a"), true)
@@ -164,9 +164,9 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.matches("aa"), false)
     assertEquals(matcher.matches("ab"), false)
     assertEquals(matcher.matches("ba"), false)
-    
+
   }
-  test ("kleene plus on value (with partials)"){
+  test("kleene plus on value (with partials)") {
     val matcher = new RegexMatcher("a+")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("a"), true)
@@ -177,14 +177,14 @@ class RegmatchSuite extends FunSuite:
     // partial matches (at start)
     assertEquals(matcher.matches("ab", true), true)
     assertEquals(matcher.matches("aab", true), true)
-    assertEquals(matcher.matches("baa", true), false) 
+    assertEquals(matcher.matches("baa", true), false)
     // partial matches (general)
     assertEquals(matcher.finds("ab"), true)
     assertEquals(matcher.finds("aab"), true)
     assertEquals(matcher.finds("baa"), true)
     assertEquals(matcher.finds("bbbb"), false)
   }
-  test ("kleene plus in sandwich (with partials)") {
+  test("kleene plus in sandwich (with partials)") {
     val matcher = new RegexMatcher("a.+b")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("ab"), false)
@@ -202,7 +202,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.finds("logaxb"), true)
     assertEquals(matcher.finds("logbxalog"), false)
   }
-  test ("two kleene plus in sandwich") {
+  test("two kleene plus in sandwich") {
     val matcher = new RegexMatcher("a.+a+b")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("ab"), false)
@@ -213,7 +213,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.matches("a"), false)
     assertEquals(matcher.matches("b"), false)
   }
-  test ("mix of all features"){
+  test("mix of all features") {
     val matcher = new RegexMatcher("a?(cd|dc)+b*")
     assertEquals(matcher.matches(""), false)
     assertEquals(matcher.matches("cd"), true)
@@ -238,7 +238,7 @@ class RegmatchSuite extends FunSuite:
     assertEquals(matcher.finds("xxadccdbbbbcxxadccdbbbbcxx"), true)
   }
 
-  test("error on unmatched param"){
+  test("error on unmatched param") {
     intercept[Exception] {
       val matcher = new RegexMatcher("(ab")
     }

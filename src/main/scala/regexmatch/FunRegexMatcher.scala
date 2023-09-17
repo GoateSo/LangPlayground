@@ -28,8 +28,6 @@ class FunRegexMatcher(reg: String):
   private def procGlob(si: Int, bi: Int, lp: Int): List[(Int, Int)] =
     if si >= reg.length - 1 then Nil
     else
-      // println((si, bi))
-      // println((bi + 1, lp))
       reg(si + 1) match
         case '*' => List((lp, si + 1), (si + 1, lp)) // self loop
         case '+' => List((si + 1, lp)) // epsilon transition backward
@@ -49,9 +47,7 @@ class FunRegexMatcher(reg: String):
     // negate contents if first char is ^
     val (neg, chrs2) =
       if chrs.head == '^' then (true, chrs.tail) else (false, chrs)
-    // parse char set body
     val body = parseCharSetBody(chrs2)
-    // negate body if needed
     if neg then List(Negated(body)) else body
 
   def parseCharSetBody(chrs: List[Char]): List[CharType] =
@@ -63,7 +59,7 @@ class FunRegexMatcher(reg: String):
           case ']' :: cs => assert(cs.isEmpty); Nil
           case c :: cs   => throw Exception("should be unreachable")
       case Some(Literal(x)) =>
-        rest match // Literal(x) :: parseCharSetBody(rest)
+        rest match 
           // followed by '-' => char range
           case ']' :: cs => assert(cs.isEmpty); Literal(x) :: Nil
           case '-' :: cs =>
