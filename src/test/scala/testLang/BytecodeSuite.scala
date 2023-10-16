@@ -11,7 +11,7 @@ object BytecodeSuite extends munit.FunSuite:
   extension (s: ByteArrayInputStream)
     def assertInstr(op: Int, a: Int, b: Int, c: Int): Unit = {
       val instr = s.readInt
-      assertEquals(getOpCode(instr), op, "bad opcode")
+      assertEquals(getOpCode(instr), op, s"bad opcode")
       assertEquals(getA(instr), a, "bad operand A")
       assertEquals(getB(instr), b, "bad operand B")
       assertEquals(getC(instr), c, "bad operand C")
@@ -47,7 +47,7 @@ class BytecodeSuite extends munit.FunSuite:
   test("function def and call") {
     val code = toChunk("let f(x) = x + 1 return f(2)")
     val strm = ByteArrayInputStream(BytecodeWriter.toByteStream(code).toArray)
-    // no upvals/params, only 3 registers needed
+    // no upvals/params, only 3 registers needed (f, f and 2 during call)
     assertEquals(strm.read(), 0)
     assertEquals(strm.read(), 0)
     assertEquals(strm.read(), 3)
@@ -75,16 +75,18 @@ class BytecodeSuite extends munit.FunSuite:
   test("function def with upvalues") {
     val code = toChunk("let a = 1 let f(x) = x + a return f(2)")
     val strm = ByteArrayInputStream(BytecodeWriter.toByteStream(code).toArray)
-    // no upval/ param, 3 registers
+    // no upval/ param, 4 registers (a, f, and two for f and 2 during call)
     assertEquals(strm.read(), 0)
     assertEquals(strm.read(), 0)
-    assertEquals(strm.read(), 3)
+    assertEquals(strm.read(), 4)
     // should be loadk, closure, move, loadk, call, return
-    assertEquals(strm.readInt, 6)
+    // plus one for the closure psuedo instruction for upvalue
+    assertEquals(strm.readInt, 7)
     strm.assertInstr(OP_LOADK, 0, 256)
     strm.assertInstr(OP_CLOSURE, 1, 0)
-    strm.assertInstr(OP_MOVE, 2, 0, 0)
-    strm.assertInstr(OP_LOADK, 3, 256)
+    strm.assertInstr(OP_MOVE, 0, 0, 0)
+    strm.assertInstr(OP_MOVE, 2, 1, 0)
+    strm.assertInstr(OP_LOADK, 3, 257)
     strm.assertInstr(OP_CALL, 2, 2, 0)
     strm.assertInstr(OP_RETURN, 2, 0, 0)
     // should have 2 const
@@ -100,6 +102,6 @@ class BytecodeSuite extends munit.FunSuite:
     // should be getupval, add, return
     assertEquals(strm.readInt, 3)
     strm.assertInstr(OP_GETUPVAL, 1, 0, 0)
-    strm.assertInstr(OP_ADD, 1, 0, 256)
+    strm.assertInstr(OP_ADD, 1, 0, 1)
     strm.assertInstr(OP_RETURN, 1, 0, 0)
   }
